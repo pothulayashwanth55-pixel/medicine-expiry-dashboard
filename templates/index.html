@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Medicine Expiry Dashboard</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-mark">✚</div>
+    <div>
+      <h1>Medicine Expiry Dashboard</h1>
+      <p>Medicine inventory and expiry monitoring</p>
+    </div>
+    <span class="cloud-tag">☁ Cloud-ready demo</span>
+  </header>
+
+  <main class="container">
+    <section class="welcome">
+      <div>
+        <p class="eyebrow">INVENTORY OVERVIEW</p>
+        <h2>Good day. Here's your stock summary.</h2>
+        <p class="muted">Expiry status is calculated automatically using today's date.</p>
+      </div>
+      <div class="today-chip">Today · {{ today }}</div>
+    </section>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="messages">
+          {% for category, message in messages %}
+            <div class="message {{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    <section class="stats">
+      <article class="stat-card total">
+        <div class="stat-icon">▦</div><p>Total medicines</p><strong>{{ total }}</strong>
+      </article>
+      <article class="stat-card safe">
+        <div class="stat-icon">✓</div><p>Safe</p><strong>{{ safe }}</strong>
+      </article>
+      <article class="stat-card soon">
+        <div class="stat-icon">◷</div><p>Expiring within 30 days</p><strong>{{ soon }}</strong>
+      </article>
+      <article class="stat-card expired">
+        <div class="stat-icon">!</div><p>Expired</p><strong>{{ expired }}</strong>
+      </article>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading">
+        <div><p class="eyebrow">NEW RECORD</p><h3>Add a medicine</h3></div>
+        <span class="step-number">01</span>
+      </div>
+      <form action="{{ url_for('add_medicine') }}" method="post" class="medicine-form">
+        <label>Medicine name<input name="name" placeholder="e.g. Paracetamol" maxlength="100" required></label>
+        <label>Batch number<input name="batch" placeholder="e.g. BTH-001" maxlength="60" required></label>
+        <label>Quantity<input name="quantity" type="number" min="1" step="1" placeholder="100" required></label>
+        <label>Expiry date<input name="expiry_date" type="date" required></label>
+        <button class="primary-btn" type="submit">＋ Add medicine</button>
+      </form>
+      <p class="hint">For demonstration, past expiry dates are allowed so you can test the expired status.</p>
+    </section>
+
+    <section class="panel">
+      <div class="section-heading inventory-heading">
+        <div><p class="eyebrow">STOCK REGISTER</p><h3>Medicine inventory</h3></div>
+        <form class="search-form" method="get" action="{{ url_for('dashboard') }}">
+          <input name="q" value="{{ query }}" placeholder="Search name or batch…" aria-label="Search medicines">
+          <button class="secondary-btn" type="submit">Search</button>
+          {% if query %}<a class="clear-link" href="{{ url_for('dashboard') }}">Clear</a>{% endif %}
+        </form>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>Medicine</th><th>Batch no.</th><th>Quantity</th><th>Expiry date</th><th>Status</th><th></th></tr></thead>
+          <tbody>
+          {% for medicine in medicines %}
+            <tr>
+              <td class="medicine-name">{{ medicine.name }}</td>
+              <td>{{ medicine.batch }}</td>
+              <td>{{ medicine.quantity }}</td>
+              <td>{{ medicine.expiry_date }}</td>
+              <td><span class="status {{ medicine.status|lower|replace(' ', '-') }}">{{ medicine.status }}</span></td>
+              <td>
+                <form method="post" action="{{ url_for('delete_medicine', medicine_id=medicine.id) }}" onsubmit="return confirm('Delete this medicine record?')">
+                  <button class="delete-btn" type="submit" aria-label="Delete {{ medicine.name }}">Delete</button>
+                </form>
+              </td>
+            </tr>
+          {% else %}
+            <tr><td colspan="6" class="empty">No medicines found. Add a record above to get started.</td></tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </section>
+    <footer>Cloud Computing Mini Project · Medicine Expiry Dashboard</footer>
+  </main>
+</body>
+</html>
